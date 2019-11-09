@@ -13,6 +13,8 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.ValueOperations;
 
 public class TieZi implements Resource, Serializable {
@@ -20,7 +22,7 @@ public class TieZi implements Resource, Serializable {
 	String url;
 	transient String title;
 	transient String fit;
-
+	static  final Logger logger = LoggerFactory.getLogger(TieZi.class);
 	// 已解析信息
 	static class TieZiYjxInfo implements Serializable {
 		private static final long serialVersionUID = 3911265664851790108L;
@@ -37,7 +39,7 @@ public class TieZi implements Resource, Serializable {
 	        byte[] b = bos.toByteArray();
 	        return b;
 	    } catch (IOException e) {
-	        System.out.println("序列化失败 Exception:" + e.toString());
+	    	logger.error("序列化失败 Exception:" + e.toString());
 	        return null;
 	    } finally {
 	        try {
@@ -137,10 +139,11 @@ public class TieZi implements Resource, Serializable {
 	static TieZiYjxInfo getYjxInfo(TieZi tz) {
 		dqysmap.computeIfAbsent(tz, (x) -> {
 			// 若map里没有值，则尝试从Redis里获取，获取失败则设置Redis初始化值
+			@SuppressWarnings("unchecked")
 			ValueOperations<TieZi, TieZiYjxInfo> op = TieBa.redisTemplate.opsForValue();
 			TieZiYjxInfo rs = op.get(x);
 			if (rs != null) {
-				System.err.println("redis获取缓存值" + x.title + "	" + rs);
+				TieBa.logger.debug("redis获取缓存值" + x.title + "	" + rs);
 				return rs;
 			}
 			rs = new TieZiYjxInfo();
@@ -190,7 +193,7 @@ public class TieZi implements Resource, Serializable {
 			e1.printStackTrace();
 			return null;
 		}
-		System.out.println("解析帖子" + "https://tieba.baidu.com/" + url);
+		logger.debug("解析帖子" + "https://tieba.baidu.com/" + url);
 		// 最新页数
 		int ys = Integer.parseInt(tzdoc.select("span.red").get(1).text());
 		// 最后一楼
@@ -200,7 +203,7 @@ public class TieZi implements Resource, Serializable {
 		//最新楼数
 		int newLs=lastLou.getLs();
 		if(newLs<resolvedLsNum) {
-			System.err.println("最新楼数"+lastLou.getLs()+" 已解析"+yjxInfo.getDqls());
+			logger.info("最新楼数"+lastLou.getLs()+" 已解析"+yjxInfo.getDqls());
 			return null;
 		}
 		
@@ -214,7 +217,7 @@ public class TieZi implements Resource, Serializable {
 				e.printStackTrace();
 				continue;
 			}
-			System.out.println("当前页数 " + dqys + "总页数" + ys);
+			logger.debug("当前页数 " + dqys + "总页数" + ys);
 			Elements lzs = tzdoc.select(".l_post");
 			for (int i = 0; i <= lzs.size() - 1; i++) {
 				if (lzs.get(i).select(".post-tail-wrap").size() < 1)
@@ -226,8 +229,8 @@ public class TieZi implements Resource, Serializable {
 					continue;
 				int finaldqys=dqys;
 				lz.fitter(fit, x->{
-					String s = title + "   " + "https://tieba.baidu.com/" + url + "?pn=" + finaldqys + "   " + x.getLouzhu() + "    "
-							+ x.getLs()+"	" +x.rq+ "\r\n";
+					String s = title + "   " + "https://tieba.baidu.com/" + url + "?pn=" + finaldqys + "   " + x.getLouzhu()
+							+"	"+x.getLounr()+"	"+ x.getLs()+"	" +x.rq+ "\r\n";
 					System.err.println(Thread.currentThread() + s);
 					FileU.p(s);
 				});			

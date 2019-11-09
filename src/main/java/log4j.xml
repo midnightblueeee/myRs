@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE log4j:configuration PUBLIC "-//LOGGER" "log4j.dtd">
+<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/">
+	<appender name="consoleAppender" class="org.apache.log4j.ConsoleAppender">
+		<!-- <param name="Threshold" value="debug"/> -->
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%d %p [%t] [%C{1}] - %m%n"/>
+		</layout>
+	</appender>
+	<appender name="sqlAppender" class="org.apache.log4j.DailyRollingFileAppender">
+		<param name="File" value="d:/logs/tb/sqlLog.log"/>
+		<param name="DatePattern" value="'.'yyyyMMddHH"/>
+		<param name="Threshold" value="info"/>
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%d %p [%c] - %m%n"/>
+		</layout>
+	</appender>
+	<appender name="sysAppender" class="org.apache.log4j.RollingFileAppender">
+		<param name="File" value="d://logs/tb/sysLog.log"/>
+		<param name="MaxFileSize" value="500MB"/>
+		<param name="MaxBackupIndex" value="100"/>
+		<param name="Threshold" value="info"/>
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%d %p [%t] [%C{1}] - %m%n"/>
+		</layout>
+	</appender>
+	<appender name="errAppender" class="org.apache.log4j.RollingFileAppender">
+		<param name="File" value="d://logs/tb/errLog.log"/>
+		<param name="MaxFileSize" value="500MB"/>
+		<param name="MaxBackupIndex" value="100"/>
+		<param name="Threshold" value="error"/>
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%d %p [%t] [%C{1}] - %m%n"/>
+		</layout>
+	</appender>
+    
+    
+<!-- 	<logger name="resource" >
+		<level value="debug" />
+		<appender-ref ref="consoleAppender" />
+	</logger> -->
+
+
+	<!-- 生产环境root节点修改：priority改为error，注释掉consoleAppender和sysAppender -->
+	<root>
+		<priority value="info" />
+		<appender-ref ref="sysAppender" />
+		<appender-ref ref="errAppender" />
+	</root>
+
+
+</log4j:configuration>
